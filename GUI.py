@@ -237,13 +237,15 @@ class GUI():
             # fileWithSignature.close()
 
             key = RSA.import_key(open(self.pathKeyPriv).read())
+            print(bytes(textMessage, encoding="utf-8"))
             h = SHA256.new(bytes(textMessage, encoding="utf-8"))
             signature = pkcs1_15.new(key).sign(h)
+            print(signature)
             fileWithSignature.write(signature)
             fileWithSignature.close()
 
             fileWithSignature = open("{name}_DS.txt".format(name=nameOfFile), "a")
-            fileWithSignature.write("~DigitalSignature123~"+textMessage)
+            fileWithSignature.write(textMessage)
             fileWithSignature.close()
 
             messagebox.showinfo(message="Digital signature generated successfully", title="Success")
@@ -308,9 +310,16 @@ class GUI():
             #     messagebox.showerror(message="Oh no!!! Digital signature error ", title="🙁")
 
             key = RSA.import_key(open(self.pathKeyPub).read())
-            textFile = open_read_file("message.txt").split("~DigitalSignature123~")
-            h = SHA256.new(bytes(textFile[0], encoding="utf-8"))
-            signature = open(self.pathMessageFile, "rb").read()[0:128]
+
+            textFile = open(self.pathMessageFile, "rb").read()
+
+            text = open(self.pathMessageFile, "r", errors="ignore").read()
+            print(text[127:])
+            h = SHA256.new(bytes(text[127:], encoding="utf8"))
+            signature = textFile[:128]
+            # print(h.hexdigest())
+            # print(signature)
+
             try:
                 pkcs1_15.new(key).verify(h, signature)
                 messagebox.showinfo(message="Digital signature checked successfully", title="😀")
